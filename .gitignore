@@ -22,3 +22,6 @@ results/
 # Paper drafts / manuscript folders
 paper/
 papers/
+
+# Local generated analysis scripts
+generate_anomaly_threshold_plot.py
