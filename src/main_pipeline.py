@@ -16,7 +16,7 @@ from src.evaluate import calculate_and_plot_metrics
 
 def main():
     print("===================================================================")
-    print("   ADAPTIVE SURVEILLANCE SYSTEM USING DEEP LEARNING (PHASE 1)   ")
+    print("   ADAPTIVE SURVEILLANCE SYSTEM USING DEEP LEARNING    ")
     print("===================================================================")
 
     # 1. Download / Verify UCSD Ped2 Dataset
