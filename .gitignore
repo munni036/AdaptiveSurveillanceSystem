@@ -1,0 +1,24 @@
+# Python Virtual Environment
+venv/
+ENV/
+
+# Python byte-compiled / cache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Large Dataset Files
+data/
+*.zip
+*.tar.gz
+
+# Results & System Logs
+results/
+.system_generated/
+
+# Editor / IDE metadata
+.vscode/
+
+# Paper drafts / manuscript folders
+paper/
+papers/
