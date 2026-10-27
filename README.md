@@ -35,26 +35,25 @@ This project addresses that issue by applying a safe adaptation pipeline inspire
 
 ```text
 AdaptiveSurveillanceResearch/
+├── buffer/
+│   ├── candidate_buffer.py
+│   └── safe_gate.py
+├── data/
+│   ├── dataset.py
+│   ├── download_dataset.py
+│   ├── download_ped2.py
+│   ├── generate_demo_data.py
+│   └── ped2_dataset.py
+├── models/
+│   ├── autoencoder.py
+│   └── spatial_temporal_ae.py
 ├── src/
-│   ├── buffer/
-│   │   ├── candidate_buffer.py
-│   │   └── safe_gate.py
-│   ├── data/
-│   │   ├── download_dataset.py
-│   │   ├── download_ped2.py
-│   │   ├── generate_demo_data.py
-│   │   └── ped2_dataset.py
-│   ├── models/
-│   │   ├── autoencoder.py
-│   │   └── spatial_temporal_ae.py
 │   ├── demo_hitl_verification.py
 │   ├── evaluate.py
+│   ├── generate_anomaly_threshold_plot.py
 │   ├── main_pipeline.py
 │   ├── train.py
 │   └── __init__.py
-├── tools/
-│   └── generate_proposed_architecture.py
-├── generate_anomaly_threshold_plot.py
 ├── requirements.txt
 ├── .gitignore
 └── README.md
