@@ -1,4 +1,9 @@
 import os
+import sys
+
+# Ensure project root is in sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 import torch
 import torch.optim as optim
 from torch.utils.data import DataLoader
@@ -35,7 +40,7 @@ def run_training_and_evaluation(data_dir="data/demo_frames", epochs=5, lr=0.001)
     model.train()
     for epoch in range(epochs):
         running_loss = 0.0
-        for frames, _ in dataloader:
+        for frames, label, img_path in dataloader:
             frames = frames.to(device)
             optimizer.zero_grad()
             reconstruction, _ = model(frames)
@@ -57,7 +62,7 @@ def run_training_and_evaluation(data_dir="data/demo_frames", epochs=5, lr=0.001)
     pass_count, alert_count, buffer_count = 0, 0, 0
 
     with torch.no_grad():
-        for idx, (frame, img_path) in enumerate(test_dataloader):
+        for idx, (frame, label, img_path) in enumerate(test_dataloader):
             frame = frame.to(device)
             error, _ = model.compute_reconstruction_error(frame)
             error_val = error.item()

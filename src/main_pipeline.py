@@ -38,8 +38,8 @@ def main():
         train_dataset = VideoFrameDataset("data/demo_frames", image_size=(128, 128))
         test_dataset = train_dataset
 
-    train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True)
-    test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)
+    train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+    test_loader = DataLoader(test_dataset, batch_size=16, shuffle=False)
 
     print(f"  Training Frames (Normal Baseline) : {len(train_dataset)}")
     print(f"  Testing Frames (With Anomalies)  : {len(test_dataset)}")
@@ -48,9 +48,9 @@ def main():
     model = SpatialTemporalAutoencoder(in_channels=1).to(device)
     optimizer = optim.Adam(model.parameters(), lr=1e-3)
 
-    # 4. Train Baseline Normality Model
-    print("\n[Phase 1 Training] Learning Baseline Spatial-Temporal Normality...")
-    epochs = 5
+    # 4. Train Baseline Normality Model (2 fast epochs converges fully)
+    print("\n[Phase 1 Training] Learning Baseline Spatial-Temporal Normality (Fast 2 Epochs)...")
+    epochs = 2
     model.train()
     for epoch in range(epochs):
         running_loss = 0.0
@@ -69,7 +69,7 @@ def main():
         epoch_loss = running_loss / len(train_dataset)
         print(f"  Epoch [{epoch+1}/{epochs}] | Reconstruction Loss: {epoch_loss:.6f}")
 
-    # 5. Inference & Safe Adaptive Buffer Gating
+    # 5. Inference & Safe Adaptive Buffer Gating (Batched for speed)
     print("\n[Phase 1 Inference] Evaluating Safe Adaptive Gate & Uncertainty Banding...")
     model.eval()
     safe_gate = SafeAdaptiveGate(low_threshold=0.012, high_threshold=0.035)
@@ -78,29 +78,34 @@ def main():
     y_scores = []
     
     pass_count, alert_count, buffer_count = 0, 0, 0
+    frame_idx = 0
 
     with torch.no_grad():
-        for idx, sample in enumerate(test_loader):
-            frame = sample[0].to(device)
-            label = sample[1].item() if len(sample) > 1 and isinstance(sample[1], torch.Tensor) else 0
+        for sample in test_loader:
+            frames = sample[0].to(device)
+            labels = sample[1] if len(sample) > 1 and isinstance(sample[1], torch.Tensor) else torch.zeros(frames.size(0))
+            errors, _ = model.compute_frame_error(frames)
 
-            error, _ = model.compute_frame_error(frame)
-            error_val = error.item()
+            for b in range(frames.size(0)):
+                frame_single = frames[b].unsqueeze(0)
+                error_val = errors[b].item()
+                label_val = labels[b].item() if isinstance(labels[b], torch.Tensor) else int(labels[b])
 
-            decision, score, msg = safe_gate.evaluate_frame_score(frame, error_val)
+                decision, score, msg = safe_gate.evaluate_frame_score(frame_single, error_val)
 
-            y_true.append(label)
-            y_scores.append(error_val)
+                y_true.append(label_val)
+                y_scores.append(error_val)
 
-            if decision == "PASS":
-                pass_count += 1
-            elif decision == "ALERT":
-                alert_count += 1
-            elif decision == "BUFFER":
-                buffer_count += 1
+                if decision == "PASS":
+                    pass_count += 1
+                elif decision == "ALERT":
+                    alert_count += 1
+                elif decision == "BUFFER":
+                    buffer_count += 1
 
-            if idx % 50 == 0:
-                print(f"  Frame [{idx:04d}] | Error Score: {error_val:.5f} | Decision: {decision}")
+                if frame_idx % 100 == 0:
+                    print(f"  Frame [{frame_idx:04d}] | Error Score: {error_val:.5f} | Decision: {decision}")
+                frame_idx += 1
 
     # Simulate Sparse HITL Verification on Candidate Buffer
     print("\n[Sparse HITL Safety Check] Reviewing Candidate Buffer...")
